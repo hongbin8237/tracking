@@ -11,7 +11,7 @@ using namespace std;
 FILE * trackFile = fopen("result.txt", "w");
 IplImage* unDistort(IplImage* pic);
 
-int nf = 100;
+int nf = 200;
 int mouseFlag = 0;
 int renewFlag = 0;
 CvPoint pt;
@@ -48,7 +48,7 @@ int main() {
 	float avgDistance;
 
 //	double quality_level = 0.05; // 2ndStreet
-	double quality_level = 0.005; // quad
+	double quality_level = 0.03; // quad
 	double min_distance = 20;
 	int block_size = 10;
 	int not_harris = false;
@@ -155,7 +155,7 @@ int main() {
 
         //cout << imgC->width << endl;
 		if (n == delay){
-			cvGoodFeaturesToTrack(imgC, NULL, NULL, featuresA, &nf, quality_level, min_distance, mask, block_size, not_harris, k);
+			cvGoodFeaturesToTrack(imgC, NULL, NULL, featuresA, &nf, quality_level, min_distance, NULL, block_size, not_harris, k);
 			for ( int i = 0; i < nf; i++){
 					featuresA[i].x = featuresA[i].x + 50;
 					featuresA[i].y = featuresA[i].y + 50;
@@ -200,6 +200,19 @@ int main() {
             }
         }
 
+        /* clear features every n frames */
+
+        if(n%20 == 0)
+        {
+            for(int i=0; i<nf; i++)
+            {
+                featuresA[i].x = 0;
+                featuresA[i].y = 0;
+                featuresB[i].x = 0;
+                featuresB[i].y = 0;
+                duration[i] = 0;
+            }
+        }
 
 
 
@@ -228,7 +241,7 @@ int main() {
 //		cout << "cnt = " << cnt << endl;
 
         /*  Another set of GoodFeatures to Replace outliers  */
-		cvGoodFeaturesToTrack(imgC, NULL, NULL, featuresC, &nf, quality_level, min_distance, mask, block_size, not_harris, k);
+		cvGoodFeaturesToTrack(imgC, NULL, NULL, featuresC, &nf, quality_level, min_distance, NULL, block_size, not_harris, k);
 
 		cvSetImageROI(imgB, cvRect(10,10,620,460));
 		cvSetImageROI(imgD, cvRect(10,10,620,460));
