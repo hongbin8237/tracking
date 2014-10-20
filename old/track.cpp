@@ -95,9 +95,12 @@ int main() {
 //	cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX,.5,.5,0,1,8);
 //|CV_FONT_HERSHEY_PLAIN
 
+    double signature_cnt = 0;
 	for ( int i = 0; i < nf; i++){
 		signature[i] = i;
+        signature_cnt++;
 	}
+
 	while(n <=  3040) {
 
 		sprintf(buffer,"/home/hongbin/ARC/tracking/Jul3120142100_boat/img/%010d.jpg", n);
@@ -212,6 +215,7 @@ int main() {
                 featuresB[i].y = 0;
                 duration[i] = 0;
             }
+
         }
 
 
@@ -278,17 +282,18 @@ int main() {
 
  
 			if (featuresB[i].x == 0){
+                signature_cnt++;
 				j++;
 				featuresA[i].x = featuresC[j].x;
 				featuresA[i].y = featuresC[j].y;
 				featuresB[i].x = featuresC[j].x;
 				featuresB[i].y = featuresC[j].y;
-				signature[i] = signature[i] + nf;
+				signature[i] = signature_cnt;
 
 			}
 			if (featuresB[i].x == 0){
 				jj++;
-				cout << "jj = " << jj << endl;
+				//cout << "jj = " << jj << endl;
 			}
 /*
 			p.x = (int) featuresA[i].x;
@@ -324,11 +329,13 @@ int main() {
 			featuresA[i].x = featuresB[i].x;
 			featuresA[i].y = featuresB[i].y;
             
-			fprintf(trackFile, "%d \t %d \t %d \t %f \t %f \n", n, i, signature[i], featuresB[i].x, featuresB[i].y);
+			fprintf(trackFile, "%d \t %d \t %d \t %f \t %f \n", n, i, -1*signature[i], featuresB[i].x, featuresB[i].y);
             char buffer[500];
-			sprintf(buffer, "%d \t %d \t %d \t %f \t %f \n", n, i, signature[i], featuresB[i].x, featuresB[i].y);
+			sprintf(buffer, "%d \t %d \t %d \t %f \t %f \n", n, i, -1*signature[i], featuresB[i].x, featuresB[i].y);
             printf(buffer);
 		}
+        printf("\n");
+        fprintf(trackFile,"\n");
 //		cout << ", j = " << j << ", jj = " << jj << endl;
 
 		cvSetImageROI(imgD, cvRect(10,10,620,460));
