@@ -203,9 +203,7 @@ int main() {
         
 
         //CvTermCriteria criteria = cvTermCriteria (CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
-        /*** NOT SURE ***/
         TermCriteria criteria = TermCriteria (CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
-        /*** NOT SURE ***/
         
         
         //cvCalcOpticalFlowPyrLK(imgA, imgB, pyrA, pyrB, featuresA, featuresB, nf, cvSize(10,10), 7, status, track_error, criteria, 0);
@@ -253,7 +251,6 @@ int main() {
         }
 
         /* clear features every n frames */
-
         if(n%20 == 0)
         {
             for(int i=0; i<nf; i++)
@@ -373,17 +370,17 @@ int main() {
         imshow( "OutputImage", imgColor );
         
         
-        /*** NOT SURE ***/
         //cvWriteFrame( writer_video, imgColor );
         VideoWriter(imgColor);
-        /*** NOT SURE ***/
         
         
         sprintf(buffer2,"saveImg/%d.jpg", n);
         
         
         //cvSaveImage( buffer2, imgColor );
+        /*** NOT SURE ***/
         imwrite(buffer2, imgColor);
+        /*** NOT SURE ***/
         
 
         char c = cvWaitKey( 33 );
