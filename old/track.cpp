@@ -17,9 +17,7 @@ using namespace cv;
 FILE* trackFile = fopen("result.txt", "w");
 
 
-//IplImage* unDistort(IplImage* pic);
-Mat unDistort(Mat pic);
-
+IplImage* unDistort(IplImage* pic);
 
 int nf = 200;
 int mouseFlag = 0;
@@ -83,9 +81,9 @@ int main() {
 //  IplImage* pyramid1 = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,1);
 //  IplImage* pyramid2 = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,1);
     Mat imgColor = Mat(Size(640,480),CV_8UC3);
-    Mat img = Mat(Size(640,480),CV_8UC1);
-    Mat imgA = Mat(Size(640,480),CV_8UC1);
-    Mat imgB = Mat(Size(640,480),CV_8UC1);
+    Mat img = Mat(Size(640,480),CV_8UC3);
+    Mat imgA = Mat(Size(640,480),CV_8UC3);
+    Mat imgB = Mat(Size(640,480),CV_8UC3);
     Mat imgC = Mat(Size(540,380),CV_8UC1);
     Mat imgD = Mat(Size(640,480),CV_8UC3);
     Mat imgE = Mat(Size(640,480),CV_8UC3);
@@ -109,19 +107,23 @@ int main() {
     
         sprintf(buffer,"../../Jul3120142100_boat/img/%010d.jpg", n);
 
-        //imgColor = cvLoadImage( buffer );
-        imgColor = imread( buffer );
+        IplImage* imgColor_ipl = cvLoadImage( buffer );
+        //imgColor = imread( buffer );
         
         
-        unDistort(imgColor);
+        unDistort(imgColor_ipl);
+        
+        
+        //convert back to Mat
+        Mat imgColor = cvarrToMat(imgColor_ipl);
         
         
         //cvConvertImage(imgColor,img);
-        cvtColor(imgColor,img, CV_BGR2GRAY);
+        cvtColor(imgColor, img, CV_BGR2GRAY);
         
         
         //cvSmooth(img, img, CV_MEDIAN, 5, 0, 0, 0);
-        //cvSmooth(img, img, CV_MEDIAN, 5, 0, 0, 0);        
+        //cvSmooth(img, img, CV_MEDIAN, 5, 0, 0, 0);
         medianBlur(img, img, 5);
         medianBlur(img, img, 5);
         
@@ -143,11 +145,10 @@ int main() {
         
         
         //IplImage* mask = cvCreateImage( cvGetSize(imgC), 8, 1);
-        Mat mask = Mat(imgC.size(), 8, 1);
+        Mat mask = Mat::zeros(imgC.rows, imgC.cols, CV_8UC1);
         
         
         //cvSet(mask, cvScalar(0));
-        mask = 0;
         
         
         //cvLine(mask, cvPoint(50, 0), cvPoint(50 , 480), cvScalar(255), 100 , CV_AA, 0);
@@ -160,16 +161,20 @@ int main() {
         imshow( "mask", mask );
         
         
+        //increase from 1 to 3 channels
+        img.convertTo(img, CV_8UC3);
+        
         if (n == delay)
         {
             //cvConvertImage(img,imgA);
-            cvtColor(img,imgA, CV_BGR2GRAY);
+            img.convertTo(imgA, CV_8UC3);
         }
-
-        //cvConvertImage(img,imgB);
-        cvtColor(img,imgB, CV_BGR2GRAY);
         
-
+        
+        //cvConvertImage(img,imgB);
+        img.convertTo(imgB, CV_8UC3);
+        
+        
         //cvSetImageROI(img, cvRect(50,50,540,380));
         //cvCopy(img,imgC);
         //cvResetImageROI(img);
@@ -181,9 +186,7 @@ int main() {
         if (n == delay)
         {
             //cvGoodFeaturesToTrack(imgC, NULL, NULL, featuresA, &nf, quality_level, min_distance, NULL, block_size, not_harris, k);
-            /*** NOT SURE ***/
             goodFeaturesToTrack(imgC, corners, nf, quality_level, min_distance, Mat(), block_size, not_harris, k);
-            /*** NOT SURE ***/
             
             
             for ( int i = 0; i < nf; i++){
@@ -198,8 +201,8 @@ int main() {
         
         //IplImage* pyrA = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1 );
         //IplImage* pyrB = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1 );
-        Mat pyrA = Mat( pyr_sz, CV_32FC1 );
-        Mat pyrB = Mat( pyr_sz, CV_32FC1 );
+        Mat pyrA = Mat( pyr_sz, CV_32F1 );
+        Mat pyrB = Mat( pyr_sz, CV_32F1 );
         
 
         //CvTermCriteria criteria = cvTermCriteria (CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
@@ -284,9 +287,7 @@ int main() {
 
         /*  Another set of GoodFeatures to Replace outliers  */
         //cvGoodFeaturesToTrack(imgC, NULL, NULL, featuresC, &nf, quality_level, min_distance, NULL, block_size, not_harris, k);
-        /*** NOT SURE ***/
         goodFeaturesToTrack(imgC, corners, nf, quality_level, min_distance, Mat(), block_size, not_harris, k);
-        /*** NOT SURE ***/
         
         
         //cvSetImageROI(imgB, cvRect(10,10,620,460));
@@ -371,7 +372,15 @@ int main() {
         
         
         //cvWriteFrame( writer_video, imgColor );
-        VideoWriter(imgColor);
+        //VideoWriter(imgColor);
+        
+        VideoWriter writer;
+        
+        writer.open("video.avi", CV_FOURCC('I', '4', '2', '0'), 16, Size(640*3,480), true);
+        
+        if(writer.isOpened()){
+        writer << imgColor;
+        }
         
         
         sprintf(buffer2,"saveImg/%d.jpg", n);
@@ -405,11 +414,8 @@ int main() {
 }
 
 
-/*** NOT SURE ***/
 //! 2014-08-19 calibration results
-//IplImage* unDistort(IplImage* pic){
-Mat unDistort(Mat pic){
-
+IplImage* unDistort(IplImage* pic){
 
     CvMat* intrinsic = cvCreateMat(3,3,CV_64F);
     cvmSet(intrinsic,0,0,766.48320);   
@@ -442,4 +448,3 @@ Mat unDistort(Mat pic){
 
     return pic;
 }
-/*** NOT SURE ***/
