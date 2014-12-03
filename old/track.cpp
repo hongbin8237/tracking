@@ -201,8 +201,8 @@ int main() {
         
         //IplImage* pyrA = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1 );
         //IplImage* pyrB = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1 );
-        Mat pyrA = Mat( pyr_sz, CV_32F1 );
-        Mat pyrB = Mat( pyr_sz, CV_32F1 );
+        Mat pyrA = Mat( pyr_sz, CV_32FC1 );
+        Mat pyrB = Mat( pyr_sz, CV_32FC1 );
         
 
         //CvTermCriteria criteria = cvTermCriteria (CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
