@@ -16,7 +16,6 @@ using namespace cv;
 
 FILE* trackFile = fopen("result.txt", "w");
 
-
 IplImage* unDistort(IplImage* pic);
 
 int nf = 200;
@@ -63,22 +62,12 @@ int main() {
     int* numFeatures = &nf;
     int cnt, j, jj;
 
-    //uchar status[nf];
-    CvPoint2D32f featuresA[nf];
-    CvPoint2D32f featuresB[nf];
-    CvPoint2D32f featuresC[nf];
+    vector<uchar> status;
+    vector<float> track_error;
+    vector<Point2f> featuresA;
+    vector<Point2f> featuresB;
+    vector<Point2f> featuresC;
     
-  
-//  IplImage* imgColor = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,3);
-//  IplImage* img = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,1);
-//  IplImage* imgA = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,1);
-//  IplImage* imgB = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,1);
-//  IplImage* imgC = cvCreateImage(cvSize(540,380),IPL_DEPTH_8U,1);
-//  IplImage* imgD = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,3);
-//  IplImage* imgE = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,3);
-//  IplImage* imgTotal = cvCreateImage(cvSize(640*3,480),IPL_DEPTH_8U,3);
-//  IplImage* pyramid1 = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,1);
-//  IplImage* pyramid2 = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,1);
     Mat imgColor = Mat(Size(640,480),CV_8UC3);
     Mat img = Mat(Size(640,480),CV_8UC1);
     Mat imgA = Mat(Size(640,480),CV_8UC1);
@@ -104,11 +93,10 @@ int main() {
     
     while(n <=  3040){
     
-        sprintf(buffer,"../Jul3120142100_boat/img/%010d.jpg", n);
+        //MODIFY PATH AS NEEDED
+        sprintf(buffer,"../../Jul3120142100_boat/img/%010d.jpg", n);
 
         IplImage* imgColor_ipl = cvLoadImage( buffer );
-
-        //imgColor = imread( buffer );
              
         unDistort(imgColor_ipl);
         
@@ -116,73 +104,41 @@ int main() {
         //convert back to Mat
         Mat imgColor = cvarrToMat(imgColor_ipl);
 
-        //cvConvertImage(imgColor,img);
         cvtColor(imgColor, img, CV_BGR2GRAY);
         
-        //cvSmooth(img, img, CV_MEDIAN, 5, 0, 0, 0);
-        //cvSmooth(img, img, CV_MEDIAN, 5, 0, 0, 0);
         medianBlur(img, img, 5);
         medianBlur(img, img, 5);
         
-        
-        //cvAdaptiveThreshold(img, img, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 3, 1 );
         adaptiveThreshold(img, img, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 3, 1 );
         
-        std::cout << "here" << std::endl; 
-        //cvSmooth(img, img, CV_MEDIAN, 1, 0, 0, 0);
         medianBlur(img, img, 1);
         
-        
-        //IplImage* imgBlank = cvCreateImage(cvSize(640,480),IPL_DEPTH_8U,3);
         Mat imgBlank = Mat(Size(640,480),CV_8UC3);
         
-        
-        //cvThreshold( imgBlank, imgBlank, 100, 255, CV_THRESH_BINARY_INV );
         threshold( imgBlank, imgBlank, 100, 255, CV_THRESH_BINARY_INV );
         
-        
-        //IplImage* mask = cvCreateImage( cvGetSize(imgC), 8, 1);
         Mat mask = Mat::zeros(imgC.rows, imgC.cols, CV_8UC1);
         
-        
-        //cvSet(mask, cvScalar(0));
-        
-        
-        //cvLine(mask, cvPoint(50, 0), cvPoint(50 , 480), cvScalar(255), 100 , CV_AA, 0);
-        //cvLine(mask, cvPoint(490, 0), cvPoint(490 , 480), cvScalar(255), 100 , CV_AA, 0);
         line(mask, cvPoint(50, 0), cvPoint(50 , 480), cvScalar(255), 100 , CV_AA, 0);
         line(mask, cvPoint(490, 0), cvPoint(490 , 480), cvScalar(255), 100 , CV_AA, 0);
-        
-        
-        //cvShowImage( "mask", mask );
-        imshow( "mask", mask );
-        
         
         //increase from 1 to 3 channels
         img.convertTo(img, CV_8UC3);
 
         if (n == delay)
         {
-            //cvConvertImage(img,imgA);
             img.convertTo(imgA, CV_8UC1);
         }
         
+        img.convertTo(imgB, CV_8UC1);
         
-        //cvConvertImage(img,imgB);
-        img.convertTo(imgB, CV_8UC1);        
-        
-        //cvSetImageROI(img, cvRect(50,50,540,380));
-        //cvCopy(img,imgC);
-        //cvResetImageROI(img);
         Rect rec(50,50,540,380);
         imgC = img(rec);
         
         
-        vector<Point2f> corners;
         if (n == delay)
         {
-            //cvGoodFeaturesToTrack(imgC, NULL, NULL, featuresA, &nf, quality_level, min_distance, NULL, block_size, not_harris, k);
-            goodFeaturesToTrack(imgC, corners, nf, quality_level, min_distance, Mat(), block_size, not_harris, k);
+            goodFeaturesToTrack(imgC, featuresA, nf, quality_level, min_distance, Mat(), block_size, not_harris, k);
             
             
             for ( int i = 0; i < nf; i++){
@@ -191,39 +147,11 @@ int main() {
             }
         }
         
-        //CvSize pyr_sz = cvSize( imgA->width+8, imgB->height/3 );
         Size pyr_sz = Size( imgA.cols+8, imgB.rows/3 );
         
-        
-        //IplImage* pyrA = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1 );
-        //IplImage* pyrB = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1 );
-        //Mat pyrA = Mat( pyr_sz, CV_32FC2 );
-        //Mat pyrB = Mat( pyr_sz, CV_32FC2 );
-         
-
-        //CvTermCriteria criteria = cvTermCriteria (CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
         TermCriteria criteria = TermCriteria (CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
         
-        
-        //cvCalcOpticalFlowPyrLK(imgA, imgB, pyrA, pyrB, featuresA, featuresB, nf, cvSize(10,10), 7, status, track_error, criteria, 0);
-        /*** NOT SURE ***/
-        vector<Point2f> pyrA, pyrB;
-        pyrA = corners;
-        vector<uchar> status;
-        vector<float> track_error;
-        //calcOpticalFlowPyrLK(imgA, imgB, pyrA, pyrB, status, track_error, Size(10,10), 7, criteria);
-        
-       imshow("image",imgB);
-       waitKey(10000);
-        
-        calcOpticalFlowPyrLK(imgA, imgB, pyrA, pyrB, status, track_error);
-        
-        /*** NOT SURE ***/
-       
-        cout << "hereee" << endl;
-        
-        //cvConvertImage(img,imgA);
-        //cvtColor(img,imgA, CV_BGR2GRAY);
+        calcOpticalFlowPyrLK(imgA, imgB, featuresA, featuresB, status, track_error);
         
 
         /* Find Homography H */
@@ -237,7 +165,6 @@ int main() {
         
         Mat H = findHomography(featAVec, featBVec, 8);
         
-        /* perspectiveTransform on featAvec to estimate featBvec */
         perspectiveTransform(featAVec, featEst, H);
 
         cnt = 0;
@@ -291,26 +218,12 @@ int main() {
         }
 
         /*  Another set of GoodFeatures to Replace outliers  */
-        //cvGoodFeaturesToTrack(imgC, NULL, NULL, featuresC, &nf, quality_level, min_distance, NULL, block_size, not_harris, k);
-        goodFeaturesToTrack(imgC, corners, nf, quality_level, min_distance, Mat(), block_size, not_harris, k);
+        goodFeaturesToTrack(imgC, featuresC, nf, quality_level, min_distance, Mat(), block_size, not_harris, k);
         
-        
-        //cvSetImageROI(imgB, cvRect(10,10,620,460));
-        //cvSetImageROI(imgD, cvRect(10,10,620,460));
-        //cvConvertImage(imgB,imgD);
-        //cvAddS(imgD, cvScalar(-100,-100,-100),imgD);
-        //cvResetImageROI(imgB);
-        //cvResetImageROI(imgD);
         Rect rec1(10,10,620,460);
         imgD(rec1) = imgB(rec1);
         add(imgD, Scalar(-100,-100,-100),imgD);
         
-        
-        //cvSetImageROI(imgC, cvRect(0,0,540,380));
-        //cvSetImageROI(imgD, cvRect(50,50,540,380));
-        //cvConvertImage(imgC,imgD);
-        //cvResetImageROI(imgC);
-        //cvResetImageROI(imgD);
         Rect rec2(0,0,540,380);
         imgD(rec) = imgB(rec2);
         
@@ -328,15 +241,10 @@ int main() {
             error = pow(pow(featBVec[i].x - featEst[i].x, 2) + pow(featBVec[i].y - featEst[i].y, 2), 0.5);
 
             if(error > 5)
-            
-            
-                //cvLine(imgColor, cvPoint(featAVec[i].x, featAVec[i].y), cvPoint(featBVec[i].x , featBVec[i].y), CV_RGB(255,20,20), 1 , CV_AA, 0);
                 line(imgColor, cvPoint(featAVec[i].x, featAVec[i].y), cvPoint(featBVec[i].x , featBVec[i].y), CV_RGB(255,20,20), 1 , CV_AA, 0);
                 
                 
             else
-            
-                //cvLine(imgColor, cvPoint(featAVec[i].x, featAVec[i].y), cvPoint(featBVec[i].x , featBVec[i].y), CV_RGB(20,255,20), 1 , CV_AA, 0);
                 line(imgColor, cvPoint(featAVec[i].x, featAVec[i].y), cvPoint(featBVec[i].x , featBVec[i].y), CV_RGB(20,255,20), 1 , CV_AA, 0);
                 
                 
@@ -362,22 +270,10 @@ int main() {
             sprintf(buffer, "%d \t %d \t %d \t %f \t %f \n", n, i, signature[i], featuresB[i].x, featuresB[i].y);
             printf(buffer);
         }
-
         
-        //cvSetImageROI(imgD, cvRect(10,10,620,460));
-        //cvSetImageROI(imgE, cvRect(10,10,620,460));
-        //cvCopy(imgD,imgE);
-        //cvResetImageROI(imgD);
-        //cvResetImageROI(imgE);
         imgE(rec1) = imgD(rec1);
         
-        
-        //cvShowImage( "OutputImage", imgColor );
         imshow( "OutputImage", imgColor );
-        
-        
-        //cvWriteFrame( writer_video, imgColor );
-        //VideoWriter(imgColor);
         
         VideoWriter writer;
         
@@ -390,31 +286,12 @@ int main() {
         
         sprintf(buffer2,"saveImg/%d.jpg", n);
         
-        
-        //cvSaveImage( buffer2, imgColor );
-        /*** NOT SURE ***/
         imwrite(buffer2, imgColor);
-        /*** NOT SURE ***/
         
-
         char c = cvWaitKey( 33 );
-        n++;
-        //cvReleaseImage(&mask);
-        //cvReleaseImage( &imgColor );
-        //cvReleaseImage( &pyramid1 );
-        //cvReleaseImage( &pyramid2 );
-        //cvReleaseImage( &pyrA );
-        //cvReleaseImage( &pyrB );
+        n++;    
     }
-    //cvReleaseVideoWriter( &writer_video );
-    //cvReleaseImage( &img );
-    //cvReleaseImage( &imgA );
-    //cvReleaseImage( &imgB );
-    //cvReleaseImage( &imgC );
-    //cvReleaseImage( &imgD );
-    //cvReleaseImage( &imgE );
-    //cvDestroyWindow( "window" );
-
+    
     return( 0 );
 }
 
