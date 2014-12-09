@@ -1,5 +1,5 @@
 
-CXXFLAGS += -g
+CXXFLAGS += -g -Wall
 CXXFLAGS += $(shell pkg-config --cflags opencv)
 LIBS = -lm
 LIBS += $(shell pkg-config --libs opencv)
