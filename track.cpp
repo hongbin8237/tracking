@@ -75,9 +75,8 @@ int main() {
         signature[i] = i;
     }
     
-    while(n <=  3040){
+    while(n <= 1900){
     
-        //MODIFY PATH AS NEEDED
         sprintf(buffer,"../Jul3120142100_boat/img/%010d.jpg", n);
 
         Mat src = imread( buffer );
@@ -104,9 +103,6 @@ int main() {
         
         line(mask, cvPoint(50, 0), cvPoint(50 , 480), cvScalar(255), 100 , CV_AA, 0);
         line(mask, cvPoint(490, 0), cvPoint(490 , 480), cvScalar(255), 100 , CV_AA, 0);
-        
-        //increase from 1 to 3 channels
-        img.convertTo(img, CV_8UC3);
 
         if (n == delay)
         {
@@ -121,7 +117,7 @@ int main() {
         
         if (n == delay)
         {
-            goodFeaturesToTrack(imgC, featuresA, nf, quality_level, min_distance, Mat(), block_size, not_harris, k);
+            goodFeaturesToTrack(imgC, featuresA, nf, quality_level, min_distance, noArray(), block_size, not_harris, k);
             
             
             for ( int i = 0; i < nf; i++){
@@ -130,9 +126,9 @@ int main() {
             }
         }
         
-        TermCriteria criteria = TermCriteria (CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
+        TermCriteria criteria = TermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
         
-        calcOpticalFlowPyrLK(imgA, imgB, featuresA, featuresB, status, track_error, Size(21,21), 3, criteria);
+        calcOpticalFlowPyrLK(imgA, imgB, featuresA, featuresB, status, track_error, Size(10,10), 7, criteria);
         
 
         /* Find Homography H */
@@ -198,7 +194,7 @@ int main() {
         }
 
         /*  Another set of GoodFeatures to Replace outliers  */
-        goodFeaturesToTrack(imgC, featuresC, nf, quality_level, min_distance, Mat(), block_size, not_harris, k);
+        goodFeaturesToTrack(imgC, featuresC, nf, quality_level, min_distance, noArray(), block_size, not_harris, k);
         
         Rect rec1(10,10,620,460);
         imgD(rec1) = imgB(rec1);
@@ -239,15 +235,14 @@ int main() {
             }
             if(featuresB[i].x == 0){
                 jj++;
-                cout << "jj = " << jj << endl;
             }
             
             featuresA[i].x = featuresB[i].x;
             featuresA[i].y = featuresB[i].y;
             
-            fprintf(trackFile, "%d \t %d \t %d \t %f \t %f \n", n, i, signature[i], featuresB[i].x, featuresB[i].y);
+            fprintf(trackFile, "%d \t %d \t %d \t %f \t %f \n", n, i, -1*signature[i], featuresB[i].x, featuresB[i].y);
             char buffer[500];
-            sprintf(buffer, "%d \t %d \t %d \t %f \t %f \n", n, i, signature[i], featuresB[i].x, featuresB[i].y);
+            sprintf(buffer, "%d \t %d \t %d \t %f \t %f \n", n, i, -1*signature[i], featuresB[i].x, featuresB[i].y);
             printf(buffer);
         }
         
@@ -255,8 +250,8 @@ int main() {
         
         imshow( "OutputImage", imgColor );
         
+        /*
         VideoWriter writer;
-        
         writer.open("video.avi", CV_FOURCC('I', '4', '2', '0'), 16, Size(640*3,480), true);
         
         if(writer.isOpened()){
@@ -265,8 +260,8 @@ int main() {
         
         
         sprintf(buffer2,"saveImg/%d.jpg", n);
-        
         imwrite(buffer2, imgColor);
+        */
         
         char c = waitKey( 33 );
         
